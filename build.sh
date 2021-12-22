@@ -17,21 +17,12 @@ DEFCONFIG=vendor/ginkgo-perf_defconfig
 # Set environment for etc.
 export ARCH=arm64
 export SUBARCH=arm64
-export KBUILD_BUILD_VERSION="1"
-export KBUILD_BUILD_USER="FiqriArdyansyah"
-export KBUILD_BUILD_HOST="DroneCI"
-
-# Set environment for telegram
-export CHATID="-1001428085807"
-export token=$TELEGRAM_TOKEN
-export BOT_MSG_URL="https://api.telegram.org/bot$token/sendMessage"
-export BOT_BUILD_URL="https://api.telegram.org/bot$token/sendDocument"
 
 #
 # Set if do you use GCC or clang compiler
 # Default is clang compiler
 #
-COMPILER=gcc
+COMPILER=clang
 
 # Get distro name
 DISTRO=$(source /etc/os-release && echo ${NAME})
@@ -41,7 +32,7 @@ PROCS=$(nproc --all)
 export PROCS
 
 # Set Date and time
-DATE=$(TZ=Asia/Jakarta date +"%Y%m%d-%T")
+DATE=$(date +"%d-%m-%Y+%H-%M")
 
 # Get branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -52,26 +43,6 @@ KERVER=$(make kernelversion)
 
 # Get last commit
 COMMIT_HEAD=$(git log --oneline -1)
-
-# Set function for telegram
-tg_post_msg() {
-	curl -s -X POST "$BOT_MSG_URL" -d chat_id="$CHATID" \
-	-d "disable_web_page_preview=true" \
-	-d "parse_mode=html" \
-	-d text="$1"
-}
-
-tg_post_build() {
-	# Post MD5 Checksum alongwith for easeness
-	MD5CHECK=$(md5sum "$1" | cut -d' ' -f1)
-
-	# Show the Checksum alongwith caption
-	curl --progress-bar -F document=@"$1" "$BOT_BUILD_URL" \
-	-F chat_id="$CHATID"  \
-	-F "disable_web_page_preview=true" \
-	-F "parse_mode=html" \
-	-F caption="$2 | <b>MD5 Checksum : </b><code>$MD5CHECK</code>"
-}
 
 # Set function for cloning repository
 clone() {
@@ -109,9 +80,8 @@ set_naming() {
 
 # Set function for starting compile
 compile() {
-	echo -e "Kernel compilation starting"
-	tg_post_msg "<b>Docker OS: </b><code>$DISTRO</code>%0A<b>Kernel Version : </b><code>$KERVER</code>%0A<b>Date : </b><code>$(TZ=Asia/Jakarta date)</code>%0A<b>Device : </b><code>Redmi Note 8 (ginkgo)</code>%0A<b>Pipeline Host : </b><code>$KBUILD_BUILD_HOST</code>%0A<b>Host Core Count : </b><code>$PROCS</code>%0A<b>Compiler Used : </b><code>$KBUILD_COMPILER_STRING</code>%0a<b>Branch : </b><code>$BRANCH</code>%0A<b>Last Commit : </b><code>$COMMIT_HEAD</code>%0A<b>Status : </b>#Personal"
 	make O=out "$DEFCONFIG"
+	make O=out nconfig
 	BUILD_START=$(date +"%s")
 	if [[ $COMPILER == "clang" ]]; then
 		make -j"$PROCS" O=out \
@@ -135,7 +105,6 @@ compile() {
 	elif ! [ -f "$IMG_DIR"/Image.gz-dtb ]
 	then
 		echo -e "Kernel compilation failed"
-		tg_post_msg "<b>Build failed to compile after $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds</b>"
 		exit 1
 	fi
 }
@@ -153,7 +122,6 @@ gen_zip() {
 	# Prepare a final zip variable
 	ZIP_FINAL="$ZIP_NAME"
 
-	tg_post_build "$ZIP_FINAL" "Build took : $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
 	cd ..
 }
 
