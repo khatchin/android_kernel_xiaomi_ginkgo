@@ -90,6 +90,9 @@ VDSO_AFLAGS += -D__ASSEMBLY__
 ifeq ($(cc-name),gcc)
 VDSO_CFLAGS += -mtune=cortex-a73.cortex-a53 -march=armv8-a
 endif
+ifeq ($(cc-name),clang)
+ccflags-y += -mcpu=cortex-a53 -mtune=cortex-a53 -march=armv8-a
+endif
 
 VDSO_LDFLAGS := $(VDSO_CPPFLAGS)
 # From arm vDSO Makefile
