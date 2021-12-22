@@ -1264,6 +1264,9 @@ config LTO_GCC
 config GCC_GRAPHITE
 	bool "Enable GCC Polyhedral Loop Optimization (Graphite)"
 
+config LLVM_POLLY
+	bool "Enable LLVM's polyhedral loop optimizer (Polly)"
+
 config HAVE_LD_DEAD_CODE_DATA_ELIMINATION
 	bool
 	help
