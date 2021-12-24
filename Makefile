@@ -714,6 +714,9 @@ KBUILD_CFLAGS	+= -mllvm -polly \
 		   -mllvm -polly-detect-keep-going \
 		   -mllvm -polly-vectorizer=stripmine \
 		   -mllvm -polly-invariant-load-hoisting
+ifdef CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
+KBUILD_CFLAGS += -mllvm -polly-run-dce
+endif 		   
 endif
 
 # The arch Makefile can set ARCH_{CPP,A,C}FLAGS to override the default
